@@ -1,0 +1,134 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum AttendanceStatus {
+  PRESENT            // Có mặt
+  LATE               // Đi trễ
+  EXCUSED_ABSENCE    // Nghỉ có phép
+  UNEXCUSED_ABSENCE  // Nghỉ không phép
+}
+
+enum StudentRank {
+  DAN     // Mặc định: 0 - 29 điểm
+  LINH    // Mặc định: 30 - 59 điểm
+  QUAN    // Mặc định: 60 - 89 điểm
+  VUA     // Mặc định: >= 90 điểm
+}
+
+enum MeetingCategory {
+  DEPARTMENT    // Họp tổ chuyên môn tiếng Anh
+  PARENTS       // Họp phụ huynh
+  COUNCIL       // Họp hội đồng sư phạm
+  OTHER         // Khác
+}
+
+model Class {
+  id           String         @id @default(uuid())
+  name         String         // Ví dụ: 10A1, IELTS Fighter, Grade 6B
+  academicYear String         // Ví dụ: 2026-2027
+  description  String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  students     Student[]
+  attendances  Attendance[]
+  evaluations  Evaluation[]
+  rankConfigs  RankConfig[]
+}
+
+model Student {
+  id           String         @id @default(uuid())
+  classId      String
+  class        Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  fullName     String         // Họ và tên học sinh
+  avatar       String?        // URL ảnh đại diện hoặc mã Preset Icon
+  gender       String?        @default("MALE") // "MALE" | "FEMALE" | "OTHER"
+  parentName   String?        // Tên phụ huynh / người giám hộ
+  parentPhone  String?        // Số điện thoại liên hệ
+  notes        String?        // Ghi chú sư phạm (Trình độ, điểm cần chú ý)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  attendances  Attendance[]
+  pointLogs    PointLog[]
+  evaluations  Evaluation[]
+
+  @@index([classId, fullName])
+}
+
+model Attendance {
+  id        String           @id @default(uuid())
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    AttendanceStatus @default(PRESENT)
+  note      String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([studentId, date])
+  @@index([classId, date])
+}
+
+model PointLog {
+  id            String      @id @default(uuid())
+  studentId     String
+  student       Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  pointsChanged Int         // Điểm cộng (+1, +2...) hoặc điểm trừ (-1, -2...)
+  reason        String      // "Vocabulary", "Homework", "Speaking", "Speaking Vietnamese"...
+  createdAt     DateTime    @default(now()) // Mốc thời gian phục vụ lọc Tháng / Kỳ / Năm
+
+  @@index([studentId, createdAt])
+}
+
+model RankConfig {
+  id          String      @id @default(uuid())
+  classId     String?     // Null = Preset mặc định toàn hệ thống; Có ID = Tùy biến riêng cho lớp
+  class       Class?      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  rank        StudentRank // DAN, LINH, QUAN, VUA
+  displayName String      // Tên hiển thị (Villager, Soldier, Scholar, King...)
+  avatarType  String      // 'PRESET_ICON' | 'EMOJI' | 'CUSTOM_IMAGE'
+  avatarValue String      // Tên Icon SVG / Ký tự Emoji / URL ảnh tùy chỉnh
+  frameColor  String      // Mã màu viền hào quang (Hex, ví dụ: #EAB308)
+  minPoints   Int         // Điểm sàn để kích hoạt cấp bậc
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([classId, rank])
+}
+
+model Evaluation {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId         String
+  class           Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  period          String   // "Tháng 09/2026", "Học kỳ 1", "Cả năm"
+  vocabulary      String?  // Nhận xét Từ vựng
+  grammar         String?  // Nhận xét Ngữ pháp
+  speaking        String?  // Nhận xét Phát âm & Kỹ năng Nói
+  attitude        String?  // Nhận xét Thái độ & Chuyên cần
+  generalComment  String   // Lời phê chung gửi phụ huynh
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([studentId, period])
+}
+
+model MeetingNote {
+  id          String          @id @default(uuid())
+  title       String
+  category    MeetingCategory @default(DEPARTMENT)
+  meetingDate DateTime
+  location    String?
+  attendees   String?         // Thành phần tham dự
+  content     String
+  actionItems String?         // Đầu việc cần làm (Checklist/Deadline dạng JSON hoặc Markdown)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
