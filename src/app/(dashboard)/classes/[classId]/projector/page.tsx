@@ -135,12 +135,26 @@ export default function ProjectorPage({
         </div>
       </div>
 
-      {/* Random Picker Fullscreen Modal */}
+      {/* Random Picker Fullscreen Modal with In-Picker Quick Scoring */}
       <RandomPickerModal
+        classId={classId}
         students={students}
         rankConfigs={classData?.rankConfigs}
         isOpen={showPickerModal}
         onClose={() => setShowPickerModal(false)}
+        onPointAwarded={(studentId, pointsChanged, newTotal, newRank, newConfig) => {
+          setStudents((prev) =>
+            prev.map((s) => {
+              if (s.id !== studentId) return s;
+              return {
+                ...s,
+                totalPoints: newTotal,
+                currentRank: newRank,
+                rankConfig: newConfig,
+              };
+            })
+          );
+        }}
       />
 
       {/* Team Generator Fullscreen Modal */}
