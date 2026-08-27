@@ -56,11 +56,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
     // Listen to global class creation/update events
     const handleClassUpdated = () => fetchClassesList();
     window.addEventListener('class_created', handleClassUpdated);
-    window.addEventListener('focus', handleClassUpdated);
 
     return () => {
       window.removeEventListener('class_created', handleClassUpdated);
-      window.removeEventListener('focus', handleClassUpdated);
     };
   }, [pathname]);
 

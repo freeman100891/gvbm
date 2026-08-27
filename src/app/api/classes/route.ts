@@ -3,10 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { DEFAULT_RANK_CONFIGS } from '@/lib/gamification-engine';
 import { StudentRank } from '@/types';
 
-async function seedDefaultClassesIfEmpty() {
-  const count = await prisma.class.count();
-  if (count > 0) return;
-
+async function seedInitialData() {
   try {
     const c1 = await prisma.class.create({
       data: {
@@ -41,7 +38,7 @@ async function seedDefaultClassesIfEmpty() {
       });
     }
 
-    // Add initial student
+    // Add initial sample students
     const s1 = await prisma.student.create({
       data: {
         classId: c1.id,
@@ -67,9 +64,7 @@ async function seedDefaultClassesIfEmpty() {
 
 export async function GET() {
   try {
-    await seedDefaultClassesIfEmpty().catch(() => {});
-
-    const classes = await prisma.class.findMany({
+    let classes = await prisma.class.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
@@ -77,6 +72,19 @@ export async function GET() {
         },
       },
     });
+
+    // If database is completely fresh, seed once and re-fetch
+    if (classes.length === 0) {
+      await seedInitialData();
+      classes = await prisma.class.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: {
+            select: { students: true },
+          },
+        },
+      });
+    }
 
     const formatted = classes.map((c) => ({
       ...c,
