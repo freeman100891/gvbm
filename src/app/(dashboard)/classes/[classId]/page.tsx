@@ -464,14 +464,14 @@ export default function ClassDashboardPage({
       </div>
 
       {/* Student Cards Grid (1-Touch Scoring & Profile Management) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5 sm:gap-5">
         {filteredStudents.map((student) => {
           const isSelected = selectedStudentIds.includes(student.id);
 
           return (
             <div
               key={student.id}
-              className={`rounded-3xl border-2 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between group relative overflow-hidden ${
+              className={`rounded-3xl border-2 p-4 sm:p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between group relative overflow-hidden @container ${
                 isSelected
                   ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md'
                   : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
@@ -499,7 +499,7 @@ export default function ClassDashboardPage({
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-bold text-base text-slate-900 dark:text-white truncate">
+                        <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">
                           {student.fullName}
                         </h3>
                         <span className="text-[11px]" title={student.gender === 'FEMALE' ? 'Nữ' : 'Nam'}>
@@ -523,7 +523,7 @@ export default function ClassDashboardPage({
                       <span className="text-[10px] uppercase font-bold text-slate-400">
                         Điểm
                       </span>
-                      <p className="text-xl font-black text-amber-500">
+                      <p className="text-lg sm:text-xl font-black text-amber-500">
                         {student.totalPoints}
                       </p>
                     </div>
@@ -591,7 +591,7 @@ export default function ClassDashboardPage({
                 <button
                   type="button"
                   onClick={() => handleOpenScoring(student, 'ADD')}
-                  className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-extrabold text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white border border-emerald-500/20 transition transform active:scale-95 shadow-sm"
+                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl font-extrabold text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white border border-emerald-500/20 transition transform active:scale-95 shadow-sm touch-target-safe"
                 >
                   <Plus className="w-4 h-4" />
                   Cộng Điểm (+)
@@ -600,7 +600,7 @@ export default function ClassDashboardPage({
                 <button
                   type="button"
                   onClick={() => handleOpenScoring(student, 'DEDUCT')}
-                  className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-extrabold text-xs bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-500/20 transition transform active:scale-95 shadow-sm"
+                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl font-extrabold text-xs bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-500/20 transition transform active:scale-95 shadow-sm touch-target-safe"
                 >
                   <Minus className="w-4 h-4" />
                   Trừ Điểm (-)

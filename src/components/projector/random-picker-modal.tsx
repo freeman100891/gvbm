@@ -127,6 +127,7 @@ export const RandomPickerModal: React.FC<RandomPickerModalProps> = ({
   const [showCustomPoints, setShowCustomPoints] = useState(false);
   const [customPointsInput, setCustomPointsInput] = useState('1');
   const [customReasonInput, setCustomReasonInput] = useState('');
+  const [highContrast, setHighContrast] = useState(false);
 
   const spinIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -348,17 +349,23 @@ export const RandomPickerModal: React.FC<RandomPickerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/90 backdrop-blur-xl animate-fade-in">
-      <div className="relative w-full max-w-4xl overflow-hidden rounded-3xl bg-slate-900 border border-slate-700/80 shadow-2xl flex flex-col text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/90 backdrop-blur-xl animate-fade-in">
+      <div
+        className={`relative w-full max-w-4xl overflow-hidden rounded-3xl border shadow-2xl flex flex-col text-white transition-colors ${
+          highContrast
+            ? 'bg-black border-white text-white shadow-none'
+            : 'bg-slate-900 border-slate-700/80'
+        }`}
+      >
         {/* Top Header */}
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-800 bg-slate-900/80">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-800 bg-slate-900/80">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-md shadow-amber-500/10">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white">
                   Vòng Quay Gọi Tên Ngẫu Nhiên
                 </h2>
                 <span className="hidden sm:inline text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-amber-400 text-slate-950">
@@ -371,13 +378,29 @@ export const RandomPickerModal: React.FC<RandomPickerModalProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition"
-            title="Đóng (Esc)"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* High Contrast Toggle for sunlit classrooms */}
+            <button
+              type="button"
+              onClick={() => setHighContrast(!highContrast)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                highContrast
+                  ? 'bg-yellow-400 text-black font-black'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+              }`}
+              title="Bật độ tương phản cao chống chói đèn phòng học"
+            >
+              <span>{highContrast ? '☀️ Chống lóa: BẬT' : '☀️ Chống lóa'}</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-2.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              title="Đóng (Esc)"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* Options & Filters Bar */}
@@ -463,7 +486,7 @@ export const RandomPickerModal: React.FC<RandomPickerModalProps> = ({
                 <span className="text-xs uppercase font-black tracking-widest text-amber-400 bg-amber-500/10 px-3.5 py-1 rounded-full border border-amber-500/20 inline-block mb-2">
                   🌟 Xin Mời Học Sinh Trả Lời:
                 </span>
-                <h3 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
+                <h3 className="text-fluid-winner font-black text-white tracking-tight leading-tight">
                   {selectedStudent.fullName}
                 </h3>
               </div>

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { StudentWithStats, ClassItem } from '@/types';
-import { ArrowRightLeft, Check, X, GraduationCap, AlertCircle } from 'lucide-react';
+import { AdaptiveModal } from '../shared/adaptive-modal';
+import { ArrowRightLeft, Check, GraduationCap, AlertCircle } from 'lucide-react';
 
 interface TransferStudentModalProps {
   currentClassId: string;
@@ -65,7 +66,6 @@ export const TransferStudentModal: React.FC<TransferStudentModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           studentIds,
-          sourceClassId: currentClassId,
           targetClassId,
           keepPointHistory,
         }),
@@ -76,7 +76,7 @@ export const TransferStudentModal: React.FC<TransferStudentModalProps> = ({
         onClose();
       } else {
         const data = await res.json();
-        setErrorMsg(data.error || 'Có lỗi xảy ra khi chuyển lớp!');
+        setErrorMsg(data.error || 'Chuyển lớp thất bại!');
       }
     } catch (err) {
       console.error('Transfer failed:', err);
@@ -87,32 +87,27 @@ export const TransferStudentModal: React.FC<TransferStudentModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-              <ArrowRightLeft className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                Chuyển Lớp Học Sinh
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Chuyển {selectedStudents.length} học sinh sang lớp học mới
-              </p>
-            </div>
+    <AdaptiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="lg"
+      title={
+        <div className="flex items-center gap-2.5">
+          <div className="p-2.5 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+            <ArrowRightLeft className="w-5 h-5" />
           </div>
-
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              Chuyển Lớp Học Sinh
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Chuyển {selectedStudents.length} học sinh sang lớp học mới
+            </p>
+          </div>
         </div>
-
+      }
+    >
+      <div className="space-y-4">
         {errorMsg && (
           <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -141,48 +136,48 @@ export const TransferStudentModal: React.FC<TransferStudentModalProps> = ({
             </div>
           </div>
 
-          {/* Destination Class Selector */}
+          {/* Target Class Selector */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Chọn Lớp Học Đích (*)
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+              Chọn Lớp Học Đích Tiếp Nhận:
             </label>
             {classes.length === 0 ? (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs">
-                Chưa có lớp học nào khác trong hệ thống để chuyển. Vui lòng tạo thêm lớp học mới trước!
-              </div>
+              <p className="text-xs text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl border border-amber-200 dark:border-amber-900/50">
+                ⚠️ Hiện tại chưa có lớp học nào khác. Vui lòng tạo thêm lớp học trước khi chuyển học sinh.
+              </p>
             ) : (
-              <select
-                value={targetClassId}
-                onChange={(e) => setTargetClassId(e.target.value)}
-                required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-bold focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer"
-              >
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    🎓 {c.name} ({c.academicYear})
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={targetClassId}
+                  onChange={(e) => setTargetClassId(e.target.value)}
+                  className="w-full p-3.5 pr-10 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-bold focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer touch-target-safe"
+                >
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.academicYear})
+                    </option>
+                  ))}
+                </select>
+                <GraduationCap className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             )}
           </div>
 
-          {/* Point History Policy Toggle */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 space-y-2">
-            <label className="flex items-start gap-3 cursor-pointer select-none">
+          {/* Keep Point History Option */}
+          <div className="p-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/40">
+            <label className="flex items-start gap-2.5 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={keepPointHistory}
                 onChange={(e) => setKeepPointHistory(e.target.checked)}
-                className="w-4 h-4 rounded text-primary accent-primary mt-0.5"
+                className="w-4 h-4 rounded text-purple-600 accent-purple-600 mt-0.5"
               />
               <div>
-                <span className="text-xs font-bold text-slate-900 dark:text-white">
-                  Bảo lưu điểm thi đua hiện tại
+                <span className="text-xs font-bold text-purple-900 dark:text-purple-200">
+                  Bảo lưu điểm số và lịch sử thi đua
                 </span>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  {keepPointHistory
-                    ? 'Học sinh sẽ giữ nguyên tổng điểm và cấp bậc khi sang lớp mới.'
-                    : 'Điểm sẽ được đặt lại về mốc Dân (0 điểm) để bắt đầu chu kỳ thi đua mới tại lớp đích.'}
+                <p className="text-[11px] text-purple-700 dark:text-purple-300/80 mt-0.5">
+                  Nếu không chọn, học sinh sẽ được chuyển sang lớp mới với 0 điểm (cấp Dân).
                 </p>
               </div>
             </label>
@@ -200,14 +195,14 @@ export const TransferStudentModal: React.FC<TransferStudentModalProps> = ({
             <button
               type="submit"
               disabled={loading || classes.length === 0}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 shadow-md shadow-purple-600/20 transition disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 shadow-md shadow-purple-600/20 transition disabled:opacity-50 touch-target-safe"
             >
               <Check className="w-4 h-4" />
-              {loading ? 'Đang Chuyển...' : 'Xác Nhận Chuyển Lớp'}
+              {loading ? 'Đang Chuyển...' : `Chuyển ${selectedStudents.length} Học Sinh`}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </AdaptiveModal>
   );
 };

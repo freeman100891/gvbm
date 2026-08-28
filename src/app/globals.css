@@ -70,6 +70,48 @@
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
+  /* Fluid Typography with clamp() */
+  .text-fluid-hero {
+    font-size: clamp(2rem, 5vw + 1rem, 5rem);
+    line-height: 1.1;
+  }
+  .text-fluid-title {
+    font-size: clamp(1.5rem, 3.5vw + 0.5rem, 3.75rem);
+    line-height: 1.15;
+  }
+  .text-fluid-winner {
+    font-size: clamp(1.75rem, 4vw + 0.5rem, 4rem);
+    line-height: 1.15;
+  }
+  .text-fluid-body {
+    font-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);
+    line-height: 1.5;
+  }
+
+  /* Safe Touch Ergonomics */
+  .touch-target-safe {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Dynamic Viewport Heights */
+  .h-dvh-screen {
+    height: 100dvh;
+  }
+  .min-h-dvh-screen {
+    min-height: 100dvh;
+  }
+
+  /* High Ambient Light Contrast Mode */
+  .high-contrast-mode {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+  }
+  .high-contrast-mode * {
+    text-shadow: 0 0 1px #ffffff;
+  }
+
   .glow-aura-dan {
     box-shadow: 0 0 16px -2px rgba(16, 185, 129, 0.5), inset 0 0 10px rgba(16, 185, 129, 0.2);
   }

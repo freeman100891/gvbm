@@ -13,6 +13,7 @@ import {
   Upload,
   AlertCircle,
 } from 'lucide-react';
+import { AdaptiveModal } from '../shared/adaptive-modal';
 
 interface StudentFormDialogProps {
   classId: string;
@@ -79,27 +80,20 @@ export const StudentFormDialog: React.FC<StudentFormDialogProps> = ({
     setErrorMsg(null);
   }, [studentToEdit, isOpen]);
 
-  const capitalizeWords = (str: string) => {
-    return str
-      .trim()
-      .split(/\s+/)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-      .join(' ');
-  };
-
   const handleCustomImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      setErrorMsg('Dung lượng ảnh tối đa là 2MB');
+      setErrorMsg('Ảnh vượt quá dung lượng 2MB!');
       return;
     }
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
-      const dataUrl = evt.target?.result as string;
-      setAvatar(dataUrl);
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setAvatar(event.target.result as string);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -108,93 +102,98 @@ export const StudentFormDialog: React.FC<StudentFormDialogProps> = ({
     e.preventDefault();
     setErrorMsg(null);
 
-    const trimmedName = capitalizeWords(fullName);
-    if (trimmedName.length < 2) {
-      setErrorMsg('Họ và tên học sinh phải có ít nhất 2 ký tự');
-      return;
-    }
+    const formattedName = fullName
+      .trim()
+      .split(/\s+/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
 
-    if (parentPhone) {
-      const phoneClean = parentPhone.replace(/[\s.-]/g, '');
-      const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
-      if (!phoneRegex.test(phoneClean)) {
-        setErrorMsg('Số điện thoại không đúng định dạng Việt Nam (VD: 0901234567 hoặc +84901234567)');
-        return;
-      }
+    const phoneRegex = /^0\d{9}$/;
+    if (parentPhone.trim() && !phoneRegex.test(parentPhone.trim())) {
+      setErrorMsg('SĐT phụ huynh không hợp lệ! Vui lòng nhập đúng 10 chữ số bắt đầu bằng 0.');
+      return;
     }
 
     setLoading(true);
 
     try {
-      const payload = {
-        fullName: trimmedName,
-        gender,
-        avatar,
-        parentName: parentName ? capitalizeWords(parentName) : null,
-        parentPhone: parentPhone ? parentPhone.trim() : null,
-        notes: notes ? notes.trim() : null,
-        classId,
-        initialPoints: !isEditing ? initialPoints : undefined,
-      };
+      if (isEditing && studentToEdit) {
+        const res = await fetch(
+          `/api/classes/${classId}/students/${studentToEdit.id}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fullName: formattedName,
+              gender,
+              avatar,
+              parentName: parentName.trim() || undefined,
+              parentPhone: parentPhone.trim() || undefined,
+              notes: notes.trim() || undefined,
+            }),
+          }
+        );
 
-      const url = isEditing
-        ? `/api/classes/${classId}/students/${studentToEdit!.id}`
-        : `/api/classes/${classId}/students`;
-
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        onSuccess();
-        onClose();
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Cập nhật học sinh thất bại');
+        }
       } else {
-        const data = await res.json();
-        setErrorMsg(data.error || 'Có lỗi xảy ra khi lưu thông tin học sinh!');
+        const res = await fetch(`/api/classes/${classId}/students`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName: formattedName,
+            gender,
+            avatar,
+            parentName: parentName.trim() || undefined,
+            parentPhone: parentPhone.trim() || undefined,
+            notes: notes.trim() || undefined,
+            initialPoints: Number(initialPoints) || 0,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Thêm học sinh thất bại');
+        }
       }
-    } catch (err) {
-      console.error('Failed to save student:', err);
-      setErrorMsg('Không thể kết nối đến máy chủ. Vui lòng thử lại!');
+
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
   };
 
+  const isCustomImageUrl = avatar.startsWith('data:') || avatar.startsWith('http');
+
   if (!isOpen) return null;
 
-  const isCustomImageUrl = avatar?.startsWith('data:') || avatar?.startsWith('http');
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-primary/10 text-primary">
-              <User className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                {isEditing ? 'Chỉnh Sửa Hồ Sơ Học Sinh' : 'Thêm Học Sinh Mới'}
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {isEditing ? `Cập nhật thông tin em ${studentToEdit?.fullName}` : 'Thêm học viên vào danh sách lớp'}
-              </p>
-            </div>
+    <AdaptiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="lg"
+      title={
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-primary/10 text-primary">
+            <User className="w-5 h-5" />
           </div>
-
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              {isEditing ? 'Chỉnh Sửa Hồ Sơ Học Sinh' : 'Thêm Học Sinh Mới'}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {isEditing ? `Cập nhật thông tin em ${studentToEdit?.fullName}` : 'Thêm học viên vào danh sách lớp'}
+            </p>
+          </div>
         </div>
-
+      }
+    >
+      <div className="space-y-4">
         {errorMsg && (
           <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -384,6 +383,6 @@ export const StudentFormDialog: React.FC<StudentFormDialogProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </AdaptiveModal>
   );
 };
