@@ -37,6 +37,45 @@ export const DEFAULT_RANK_CONFIGS: Record<StudentRank, RankConfigItem> = {
 
 export const RANK_THEME_PRESETS: RankThemePreset[] = [
   {
+    id: 'primary-kids',
+    name: 'Tiểu Học Siêu Nhí (Kids Explorer)',
+    description: 'Giao diện ngộ nghĩnh dành riêng cho học sinh 6-11 tuổi: Búp Măng Non 🌱 ➔ Dũng Sĩ Tí Hon 🐻 ➔ Nhà Thông Thái 🦉 ➔ Vua Siêu Nhí 🦁',
+    ranks: {
+      DAN: {
+        displayName: 'Búp Măng Non (Explorer)',
+        avatarType: 'EMOJI',
+        avatarValue: '🌱',
+        frameColor: '#4ADE80',
+        minPoints: 0,
+        badgeIcon: 'Sprout',
+      },
+      LINH: {
+        displayName: 'Dũng Sĩ Tí Hon (Warrior)',
+        avatarType: 'EMOJI',
+        avatarValue: '🐻',
+        frameColor: '#38BDF8',
+        minPoints: 30,
+        badgeIcon: 'Shield',
+      },
+      QUAN: {
+        displayName: 'Nhà Thông Thái (Scholar)',
+        avatarType: 'EMOJI',
+        avatarValue: '🦉',
+        frameColor: '#C084FC',
+        minPoints: 60,
+        badgeIcon: 'Scroll',
+      },
+      VUA: {
+        displayName: 'Vua Siêu Nhí (Kid King)',
+        avatarType: 'EMOJI',
+        avatarValue: '🦁',
+        frameColor: '#FACC15',
+        minPoints: 90,
+        badgeIcon: 'Crown',
+      },
+    },
+  },
+  {
     id: 'classic',
     name: 'Cổ điển Đại Việt (Classic)',
     description: 'Bộ cấp bậc truyền thống Dân - Lính - Quan - Vua thân thuộc và gần gũi',
@@ -195,19 +234,19 @@ export const RANK_THEME_PRESETS: RankThemePreset[] = [
 ];
 
 export const POINT_CRITERIA_PRESETS = [
-  // Bonus points
-  { label: 'New Vocab Master', points: 1, type: 'ADD', icon: 'BookOpen', color: 'emerald' },
-  { label: 'Good Speaking / Presentation', points: 2, type: 'ADD', icon: 'Mic', color: 'blue' },
-  { label: 'Completed Homework', points: 2, type: 'ADD', icon: 'CheckCircle', color: 'indigo' },
-  { label: 'Helpful & Cooperative', points: 1, type: 'ADD', icon: 'Heart', color: 'rose' },
-  { label: 'Active Participation', points: 1, type: 'ADD', icon: 'Flame', color: 'amber' },
-  { label: 'Perfect Pronunciation', points: 2, type: 'ADD', icon: 'Sparkles', color: 'purple' },
+  // Bonus points (🌟 Khen Thưởng)
+  { label: '📖 Từ vựng xuất sắc (+1)', points: 1, type: 'ADD', icon: 'BookOpen', color: 'emerald' },
+  { label: '🗣️ Phát âm chuẩn / Nói to (+2)', points: 2, type: 'ADD', icon: 'Mic', color: 'blue' },
+  { label: '⭐ Bài tập đầy đủ (+2)', points: 2, type: 'ADD', icon: 'CheckCircle', color: 'indigo' },
+  { label: '🙌 Giúp đỡ bạn bè (+1)', points: 1, type: 'ADD', icon: 'Heart', color: 'rose' },
+  { label: '🏆 Siêu sao / Thử thách khó (+5)', points: 5, type: 'ADD', icon: 'Sparkles', color: 'amber' },
+  { label: '🔥 Hăng hái phát biểu (+1)', points: 1, type: 'ADD', icon: 'Flame', color: 'amber' },
   
-  // Penalty points
-  { label: 'Missed Homework', points: -2, type: 'DEDUCT', icon: 'XCircle', color: 'red' },
-  { label: 'Speaking Vietnamese in English Zone', points: -1, type: 'DEDUCT', icon: 'MessageSquareOff', color: 'orange' },
-  { label: 'Distracted / Off-task', points: -1, type: 'DEDUCT', icon: 'EyeOff', color: 'amber' },
-  { label: 'Late to Class', points: -1, type: 'DEDUCT', icon: 'Clock', color: 'yellow' },
+  // Penalty points (🎈 Nhắc Nhở Nhẹ Nhàng)
+  { label: '🤫 Nói chuyện riêng (-1)', points: -1, type: 'DEDUCT', icon: 'MessageSquareOff', color: 'orange' },
+  { label: '🇬🇧 Quên dùng tiếng Anh (-1)', points: -1, type: 'DEDUCT', icon: 'EyeOff', color: 'orange' },
+  { label: '🎒 Quên tập vở / Bài tập (-2)', points: -2, type: 'DEDUCT', icon: 'XCircle', color: 'red' },
+  { label: '⏳ Đi trễ vào lớp (-1)', points: -1, type: 'DEDUCT', icon: 'Clock', color: 'yellow' },
 ];
 
 export const ENCOURAGING_DEMOTION_QUOTES = [

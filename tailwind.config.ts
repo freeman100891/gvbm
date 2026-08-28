@@ -74,16 +74,23 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        sans: ['var(--font-nunito)', 'sans-serif'],
+        display: ['var(--font-quicksand)', 'sans-serif'],
+      },
       boxShadow: {
         'glow-dan': '0 0 15px -3px rgba(16, 185, 129, 0.45), 0 0 6px -2px rgba(16, 185, 129, 0.3)',
         'glow-linh': '0 0 15px -3px rgba(59, 130, 246, 0.45), 0 0 6px -2px rgba(59, 130, 246, 0.3)',
         'glow-quan': '0 0 18px -2px rgba(168, 85, 247, 0.5), 0 0 8px -2px rgba(168, 85, 247, 0.35)',
         'glow-vua': '0 0 25px 0px rgba(234, 179, 8, 0.65), 0 0 10px 0px rgba(245, 158, 11, 0.45)',
+        'clay-card': '0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05), inset 0 -4px 0 0 rgba(0, 0, 0, 0.1)',
+        'clay-btn': '0 4px 0 0 rgba(0, 0, 0, 0.15)',
       },
       animation: {
         "spin-slow": "spin 8s linear infinite",
         "bounce-slight": "bounceSlight 2s infinite ease-in-out",
         "pulse-glow": "pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "pop": "pop 0.3s ease-out",
       },
       keyframes: {
         bounceSlight: {
@@ -93,6 +100,11 @@ const config: Config = {
         pulseGlow: {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.6" },
+        },
+        pop: {
+          "0%": { transform: "scale(0.9)" },
+          "50%": { transform: "scale(1.08)" },
+          "100%": { transform: "scale(1)" },
         },
       },
     },

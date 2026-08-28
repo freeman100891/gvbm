@@ -19,6 +19,7 @@ import { StudentActionMenu } from '@/components/students/student-action-menu';
 import { DeleteStudentConfirmModal } from '@/components/students/delete-student-confirm-modal';
 import { TransferStudentModal } from '@/components/students/transfer-student-modal';
 import { StudentBatchToolbar } from '@/components/students/student-batch-toolbar';
+import { KidStudentCard } from '@/components/gamification/kid-student-card';
 import { useGamification } from '@/hooks/use-gamification';
 import {
   Users,
@@ -463,152 +464,23 @@ export default function ClassDashboardPage({
         </div>
       </div>
 
-      {/* Student Cards Grid (1-Touch Scoring & Profile Management) */}
+      {/* Student Cards Grid (Kid-Friendly 3D Chunky Cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5 sm:gap-5">
-        {filteredStudents.map((student) => {
-          const isSelected = selectedStudentIds.includes(student.id);
-
-          return (
-            <div
-              key={student.id}
-              className={`rounded-3xl border-2 p-4 sm:p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between group relative overflow-hidden @container ${
-                isSelected
-                  ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md'
-                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
-              }`}
-            >
-              {/* Top Student Header */}
-              <div>
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {/* Multi-select Checkbox */}
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => handleToggleSelectStudent(student.id)}
-                      className="w-4 h-4 rounded text-primary accent-primary cursor-pointer shrink-0"
-                    />
-
-                    <RankAvatar
-                      fullName={student.fullName}
-                      avatarUrl={student.avatar}
-                      rank={student.currentRank}
-                      rankConfig={student.rankConfig}
-                      size="lg"
-                    />
-
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">
-                          {student.fullName}
-                        </h3>
-                        <span className="text-[11px]" title={student.gender === 'FEMALE' ? 'Nữ' : 'Nam'}>
-                          {student.gender === 'FEMALE' ? '👧' : '👦'}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <RankBadge
-                          rank={student.currentRank}
-                          rankConfig={student.rankConfig}
-                          size="sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions: Total Points + Context Menu */}
-                  <div className="flex items-start gap-1 shrink-0">
-                    <div className="text-right">
-                      <span className="text-[10px] uppercase font-bold text-slate-400">
-                        Điểm
-                      </span>
-                      <p className="text-lg sm:text-xl font-black text-amber-500">
-                        {student.totalPoints}
-                      </p>
-                    </div>
-
-                    <StudentActionMenu
-                      student={student}
-                      classId={classId}
-                      onEdit={handleOpenEditStudent}
-                      onTransfer={handleOpenSingleTransfer}
-                      onResetPoints={handleResetStudentPoints}
-                      onDelete={handleOpenSingleDelete}
-                    />
-                  </div>
-                </div>
-
-                {/* Notes snippet */}
-                {student.notes && (
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl mb-3 line-clamp-2 italic border border-slate-100 dark:border-slate-800">
-                    🎯 {student.notes}
-                  </p>
-                )}
-
-                {/* Attendance & Contact snippet */}
-                <div className="space-y-1.5 py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                      Chuyên cần:
-                    </span>
-                    <span className="font-bold text-slate-700 dark:text-slate-200">
-                      {Math.round(student.attendanceRate ?? 100)}%
-                    </span>
-                  </div>
-
-                  {student.parentPhone && (
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Phone className="w-3.5 h-3.5 text-blue-500" />
-                        PH ({student.parentName || 'PH'}):
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={`tel:${student.parentPhone}`}
-                          className="font-mono font-medium text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          {student.parentPhone}
-                        </a>
-                        <a
-                          href={`https://zalo.me/${student.parentPhone.replace(/[\s.-]/g, '')}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[10px] font-bold text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded-md hover:bg-blue-500 hover:text-white transition"
-                          title="Nhắn tin qua Zalo"
-                        >
-                          Zalo
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* 1-Touch Action Buttons: + (Bonus) and - (Deduct) */}
-              <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => handleOpenScoring(student, 'ADD')}
-                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl font-extrabold text-xs bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white border border-emerald-500/20 transition transform active:scale-95 shadow-sm touch-target-safe"
-                >
-                  <Plus className="w-4 h-4" />
-                  Cộng Điểm (+)
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleOpenScoring(student, 'DEDUCT')}
-                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl font-extrabold text-xs bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-500/20 transition transform active:scale-95 shadow-sm touch-target-safe"
-                >
-                  <Minus className="w-4 h-4" />
-                  Trừ Điểm (-)
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        {filteredStudents.map((student) => (
+          <KidStudentCard
+            key={student.id}
+            student={student}
+            classId={classId}
+            rankConfig={student.rankConfig}
+            isSelected={selectedStudentIds.includes(student.id)}
+            onToggleSelect={handleToggleSelectStudent}
+            onScoreAction={handleOpenScoring}
+            onEditStudent={handleOpenEditStudent}
+            onTransferStudent={handleOpenSingleTransfer}
+            onResetPoints={handleResetStudentPoints}
+            onDeleteStudent={handleOpenSingleDelete}
+          />
+        ))}
       </div>
 
       {/* Floating Batch Action Toolbar */}

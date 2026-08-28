@@ -6,13 +6,14 @@ import confetti from 'canvas-confetti';
 import { StudentWithStats, RankConfigItem } from '@/types';
 import { RankAvatar } from '../gamification/rank-avatar';
 import { RankBadge } from '../gamification/rank-badge';
+import { KidButton } from '../ui/kid-button';
+import { useSoundEffects } from '@/hooks/use-sound-effects';
 import {
   X,
   Users2,
   Shuffle,
   Scale,
   Sparkles,
-  Download,
   Copy,
   Check,
 } from 'lucide-react';
@@ -24,26 +25,47 @@ interface TeamGeneratorModalProps {
   onClose: () => void;
 }
 
-const TEAM_NAMES = [
-  'Team Dragons 🐉',
-  'Team Phoenix 🦅',
-  'Team Lions 🦁',
-  'Team Tigers 🐅',
-  'Team Wizards 🧙♂️',
-  'Team Warriors ⚔️',
-  'Team Titans ⚡',
-  'Team Guardians 🛡️',
-];
-
-const TEAM_COLORS = [
-  'from-blue-600/20 to-blue-900/30 border-blue-500/50',
-  'from-rose-600/20 to-rose-900/30 border-rose-500/50',
-  'from-amber-600/20 to-amber-900/30 border-amber-500/50',
-  'from-emerald-600/20 to-emerald-900/30 border-emerald-500/50',
-  'from-purple-600/20 to-purple-900/30 border-purple-500/50',
-  'from-cyan-600/20 to-cyan-900/30 border-cyan-500/50',
-  'from-indigo-600/20 to-indigo-900/30 border-indigo-500/50',
-  'from-teal-600/20 to-teal-900/30 border-teal-500/50',
+const ANIMAL_SQUAD_NAMES = [
+  {
+    name: 'Khủng Long Xanh 🦖',
+    eng: 'Dino Squad',
+    color: 'from-emerald-600/25 to-emerald-950/40 border-emerald-500/60 text-emerald-300',
+  },
+  {
+    name: 'Gấu Trúc Đáng Yêu 🐼',
+    eng: 'Panda Squad',
+    color: 'from-slate-600/25 to-slate-950/40 border-slate-400/60 text-slate-200',
+  },
+  {
+    name: 'Chim Cánh Cụt 🐧',
+    eng: 'Penguin Squad',
+    color: 'from-sky-600/25 to-sky-950/40 border-sky-400/60 text-sky-300',
+  },
+  {
+    name: 'Sư Tử Dũng Mãnh 🦁',
+    eng: 'Lion Squad',
+    color: 'from-amber-600/25 to-amber-950/40 border-amber-400/60 text-amber-300',
+  },
+  {
+    name: 'Cáo Nhanh Nhẹn 🦊',
+    eng: 'Fox Squad',
+    color: 'from-orange-600/25 to-orange-950/40 border-orange-400/60 text-orange-300',
+  },
+  {
+    name: 'Thỏ Trắng Tinh Nghịch 🐰',
+    eng: 'Rabbit Squad',
+    color: 'from-pink-600/25 to-pink-950/40 border-pink-400/60 text-pink-300',
+  },
+  {
+    name: 'Cá Heo Thông Thái 🐬',
+    eng: 'Dolphin Squad',
+    color: 'from-blue-600/25 to-blue-950/40 border-blue-400/60 text-blue-300',
+  },
+  {
+    name: 'Đại Bàng Bay Cao 🦅',
+    eng: 'Eagle Squad',
+    color: 'from-purple-600/25 to-purple-950/40 border-purple-400/60 text-purple-300',
+  },
 ];
 
 export const TeamGeneratorModal: React.FC<TeamGeneratorModalProps> = ({
@@ -52,36 +74,51 @@ export const TeamGeneratorModal: React.FC<TeamGeneratorModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { playFanfare } = useSoundEffects();
+
   const [teamCount, setTeamCount] = useState<number>(3);
-  const [balanceMode, setBalanceMode] = useState<'BALANCED' | 'RANDOM'>('BALANCED');
-  const [generatedTeams, setGeneratedTeams] = useState<{ name: string; color: string; members: StudentWithStats[] }[]>([]);
+  const [balanceMode, setBalanceMode] = useState<'BALANCED' | 'RANDOM'>(
+    'BALANCED'
+  );
+  const [generatedTeams, setGeneratedTeams] = useState<
+    {
+      name: string;
+      eng: string;
+      color: string;
+      members: StudentWithStats[];
+    }[]
+  >([]);
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = () => {
     if (students.length === 0) return;
 
     let pool = [...students];
-    const teams: { name: string; color: string; members: StudentWithStats[] }[] = [];
+    const teams: {
+      name: string;
+      eng: string;
+      color: string;
+      members: StudentWithStats[];
+    }[] = [];
 
     for (let i = 0; i < teamCount; i++) {
+      const squad = ANIMAL_SQUAD_NAMES[i % ANIMAL_SQUAD_NAMES.length];
       teams.push({
-        name: TEAM_NAMES[i % TEAM_NAMES.length],
-        color: TEAM_COLORS[i % TEAM_COLORS.length],
+        name: squad.name,
+        eng: squad.eng,
+        color: squad.color,
         members: [],
       });
     }
 
     if (balanceMode === 'RANDOM') {
-      // Shuffle randomly
       pool = pool.sort(() => Math.random() - 0.5);
       pool.forEach((student, index) => {
         teams[index % teamCount].members.push(student);
       });
     } else {
-      // Balanced mode: Sort by rank/points descending (Vua -> Quan -> Linh -> Dan)
+      // Balanced snake draft
       pool.sort((a, b) => b.totalPoints - a.totalPoints);
-
-      // Snake draft distribution (0, 1, 2, 2, 1, 0...) to balance teams
       let currentTeam = 0;
       let direction = 1;
 
@@ -99,46 +136,48 @@ export const TeamGeneratorModal: React.FC<TeamGeneratorModalProps> = ({
     }
 
     setGeneratedTeams(teams);
+    playFanfare();
     confetti({
-      particleCount: 50,
-      spread: 60,
-      origin: { y: 0.7 },
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.5 },
     });
   };
 
   const handleCopyTeams = () => {
     if (generatedTeams.length === 0) return;
-    let text = `DANH SÁCH CHIA NHÓM THỰC HÀNH TIẾNG ANH:\n\n`;
+
+    let text = '📋 DANH SÁCH BIỆT ĐỘI HỌC TẬP:\n\n';
     generatedTeams.forEach((t) => {
-      text += `📍 ${t.name} (${t.members.length} học sinh):\n`;
+      text += `🌟 ${t.name} (${t.eng}) - ${t.members.length} thành viên:\n`;
       t.members.forEach((m, idx) => {
         text += `  ${idx + 1}. ${m.fullName} [${m.currentRank}] (${m.totalPoints} pts)\n`;
       });
-      text += `\n`;
+      text += '\n';
     });
 
     navigator.clipboard.writeText(text);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/90 backdrop-blur-lg">
-      <div className="relative w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl flex flex-col text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/90 backdrop-blur-xl animate-fade-in">
+      <div className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-3xl bg-slate-900 border border-slate-700/80 shadow-2xl flex flex-col text-white">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-800 bg-slate-900/60">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-800 bg-slate-900/80">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-md shadow-blue-500/10">
               <Users2 className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                Chia Nhóm Tự Động & Cân Bằng Năng Lực
+              <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                Chia Biệt Đội Động Vật Siêu Nhí 🐾
               </h2>
               <p className="text-xs text-slate-400">
-                Phân bổ đều Vua / Quan / Lính để tối ưu hóa thảo luận nhóm
+                Phân bổ cân bằng theo năng lực & cấp bậc Dân - Vua
               </p>
             </div>
           </div>
@@ -151,158 +190,176 @@ export const TeamGeneratorModal: React.FC<TeamGeneratorModalProps> = ({
           </button>
         </div>
 
-        {/* Controls */}
-        <div className="p-6 bg-slate-800/40 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
+        {/* Options Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:px-6 bg-slate-800/40 border-b border-slate-800 text-xs">
+          <div className="flex flex-wrap items-center gap-4">
             {/* Number of Teams */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-300">
-                Số lượng nhóm:
-              </span>
-              <div className="flex items-center bg-slate-800 rounded-xl p-1 border border-slate-700">
+              <span className="text-slate-300 font-black">Số nhóm:</span>
+              <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-2xl border border-slate-700">
                 {[2, 3, 4, 5, 6].map((num) => (
                   <button
                     key={num}
+                    type="button"
                     onClick={() => setTeamCount(num)}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition ${
+                    className={`w-8 h-8 rounded-xl font-black text-xs transition ${
                       teamCount === num
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-amber-400 text-slate-950 shadow-md scale-105'
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    {num} Nhóm
+                    {num}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Mode: Balanced vs Random */}
+            {/* Mode selection */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-300">
-                Chế độ chia:
-              </span>
-              <div className="flex items-center bg-slate-800 rounded-xl p-1 border border-slate-700">
+              <span className="text-slate-300 font-black">Chế độ:</span>
+              <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-2xl border border-slate-700">
                 <button
+                  type="button"
                   onClick={() => setBalanceMode('BALANCED')}
-                  className={`flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg transition ${
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-black text-xs transition ${
                     balanceMode === 'BALANCED'
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-blue-500 text-white shadow-md'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   <Scale className="w-3.5 h-3.5" />
-                  Cân Bằng Trình Độ
+                  Cân Bằng ⭐
                 </button>
                 <button
+                  type="button"
                   onClick={() => setBalanceMode('RANDOM')}
-                  className={`flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg transition ${
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-black text-xs transition ${
                     balanceMode === 'RANDOM'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-purple-500 text-white shadow-md'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   <Shuffle className="w-3.5 h-3.5" />
-                  Ngẫu Nhiên
+                  Ngẫu Nhiên 🎲
                 </button>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <KidButton
+              variant="primary"
+              size="md"
               onClick={handleGenerate}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm text-slate-900 bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 shadow-md transition transform active:scale-95"
+              className="px-6"
             >
               <Sparkles className="w-4 h-4" />
-              Tạo Nhóm Ngay
-            </button>
-
-            {generatedTeams.length > 0 && (
-              <button
-                onClick={handleCopyTeams}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? 'Đã Sao Chép!' : 'Sao Chép'}
-              </button>
-            )}
+              CHIA BIỆT ĐỘI NGAY 🐾
+            </KidButton>
           </div>
         </div>
 
-        {/* Teams Display Grid */}
-        <div className="p-6 overflow-y-auto max-h-[55vh]">
-          {generatedTeams.length === 0 ? (
-            <div className="text-center py-16 text-slate-400">
-              <Users2 className="w-12 h-12 mx-auto mb-3 text-slate-600" />
-              <p className="font-bold text-lg text-slate-300">Chưa tạo nhóm</p>
-              <p className="text-xs text-slate-400 mt-1">
-                Nhấn "Tạo Nhóm Ngay" để hệ thống tự động phân chia {students.length} học sinh
-              </p>
+        {/* Generated Teams Grid */}
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-gradient-to-b from-slate-900 to-slate-950">
+          {generatedTeams.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {generatedTeams.map((team, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.08 }}
+                  className={`rounded-3xl border-2 p-4 bg-gradient-to-b ${team.color} shadow-lg flex flex-col justify-between`}
+                >
+                  {/* Team Header */}
+                  <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3">
+                    <div>
+                      <h4 className="font-black text-base tracking-tight text-white">
+                        {team.name}
+                      </h4>
+                      <span className="text-[10px] opacity-75 font-semibold">
+                        {team.eng}
+                      </span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-black/40 text-[11px] font-black text-white">
+                      {team.members.length} bạn
+                    </span>
+                  </div>
+
+                  {/* Members List */}
+                  <div className="space-y-2 flex-1">
+                    {team.members.map((member) => (
+                      <div
+                        key={member.id}
+                        className="flex items-center justify-between p-2 rounded-2xl bg-black/25 backdrop-blur-sm border border-white/5"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <RankAvatar
+                            fullName={member.fullName}
+                            avatarUrl={member.avatar}
+                            rank={member.currentRank}
+                            rankConfig={member.rankConfig}
+                            size="sm"
+                            showGlow={false}
+                          />
+                          <span className="font-bold text-xs truncate text-slate-100">
+                            {member.fullName}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <RankBadge
+                            rank={member.currentRank}
+                            rankConfig={member.rankConfig}
+                            size="sm"
+                          />
+                          <span className="text-[11px] font-extrabold text-amber-300">
+                            {member.totalPoints} pts
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {generatedTeams.map((team, tIdx) => {
-                const totalPoints = team.members.reduce((a, b) => a + b.totalPoints, 0);
-                return (
-                  <div
-                    key={tIdx}
-                    className={`rounded-3xl p-5 border bg-gradient-to-b ${team.color} backdrop-blur-md`}
-                  >
-                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
-                      <div>
-                        <h3 className="font-extrabold text-lg text-white">
-                          {team.name}
-                        </h3>
-                        <span className="text-xs text-slate-300">
-                          {team.members.length} thành viên
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-[11px] text-slate-400">Tổng điểm</span>
-                        <p className="text-sm font-bold text-amber-300">
-                          {totalPoints} pts
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2.5">
-                      {team.members.map((member, mIdx) => (
-                        <div
-                          key={member.id}
-                          className="flex items-center justify-between p-2.5 rounded-2xl bg-black/20 border border-white/5"
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="text-xs font-bold text-slate-400 w-4">
-                              {mIdx + 1}.
-                            </span>
-                            <RankAvatar
-                              fullName={member.fullName}
-                              avatarUrl={member.avatar}
-                              rank={member.currentRank}
-                              rankConfig={member.rankConfig}
-                              size="sm"
-                              showGlow={false}
-                            />
-                            <span className="text-xs font-semibold text-white truncate">
-                              {member.fullName}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <RankBadge
-                              rank={member.currentRank}
-                              rankConfig={member.rankConfig}
-                              size="sm"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex flex-col items-center justify-center min-h-[300px] text-center text-slate-400 space-y-3">
+              <div className="w-16 h-16 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl">
+                🐾
+              </div>
+              <p className="text-base font-bold text-slate-200">
+                Sẵn sàng phân chia {students.length} học sinh thành các Biệt Đội Động Vật
+              </p>
+              <p className="text-xs text-slate-400">
+                Nhấn nút &quot;CHIA BIỆT ĐỘI NGAY 🐾&quot; để bắt đầu chia nhóm
+              </p>
             </div>
           )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 sm:p-5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+          <span className="text-xs text-slate-400">
+            Sĩ số lớp: <strong className="text-white">{students.length}</strong> học sinh
+          </span>
+
+          <div className="flex items-center gap-2">
+            {generatedTeams.length > 0 && (
+              <KidButton
+                variant="sky"
+                size="sm"
+                onClick={handleCopyTeams}
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? 'Đã Sao Chép!' : 'Sao Chép Danh Sách'}
+              </KidButton>
+            )}
+
+            <KidButton variant="neutral" size="sm" onClick={onClose}>
+              Đóng (Esc)
+            </KidButton>
+          </div>
         </div>
       </div>
     </div>
